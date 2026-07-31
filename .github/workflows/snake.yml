@@ -30,3 +30,4 @@ jobs:
           build_dir: dist
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+# generates the animated contribution snake shown in the README
