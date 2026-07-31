@@ -165,7 +165,7 @@ def esc(s):
 HERO_W, HERO_H = 1200, 330
 PROMPT = "$ "
 TYPED = "Hello, I'm Vidhaan"
-CAPTION = "high-school developer — I build things people actually use"
+CAPTION = "full stack developer"
 
 
 def typed_line(x, y, size, text, dur, begin=0.0, cid="tc", persist=True):
@@ -243,22 +243,18 @@ def build_hero():
 # ------------------------------------------------------------------ about ---
 # Commands type out; their output prints at once. That is how a real terminal
 # behaves, and it keeps one authored moment instead of eight scattered ones.
-# Labels sit in their own column rather than being padded with spaces: SVG
-# collapses runs of whitespace, so padded text would not stay aligned.
 SESSION = [
-    ("cmd", "whoami", None),
-    ("out", "", "vidhaan — 16, building software that solves problems I actually have"),
-    ("gap", None, None),
-    ("cmd", "cat now.txt", None),
-    ("out", "building", "Velo — push-to-talk voice dictation for macOS, open source"),
-    ("out", "shipping", "BasisRide — carpool matching for families at my school"),
-    ("out", "learning", "how models work underneath, and how to put them in apps"),
-    ("out", "competing", "ACSL — 39/40 at Nationals, 3/3 this Summer League"),
-    ("out", "offline", "PADI scuba certified since I was 10"),
+    ("cmd", "whoami"),
+    ("gap", None),
+    ("out", "I'm currently working on Velo, a push-to-talk open-source clone of WisprFlow."),
+    ("out", "I'm looking to collaborate on getting BasisRide into more carpool groups at my school."),
+    ("out", "I'm currently learning how AI works under the hood and how to integrate AI in my own apps."),
+    ("out", "Ask me about training for ACSL; I scored 39/40 at Nationals and scored 3/3 in this year's Summer League."),
+    ("out", "Fun fact: I earned my PADI Scuba Diving License when I was 10 years old!"),
 ]
-LABEL_W = 112  # x-offset of the value column, from the panel's text gutter
 
-ABOUT_W = 940
+# Wide enough for the longest line to sit on one row without wrapping.
+ABOUT_W = 1120
 ROW_H = 32
 
 
@@ -276,32 +272,23 @@ def build_about():
             continue
         if row[0] == "cmd":
             text = row[1]
-            dur = max(0.45, len(text) * 0.045)
+            dur = max(0.45, len(text) * 0.055)
             body.append(
                 '<text class="rv" style="animation-delay:%.2fs" x="%d" y="%.1f" '
-                'fill="%s" font-family="%s" font-size="16" font-weight="700">$</text>'
+                'fill="%s" font-family="%s" font-size="15" font-weight="700">$</text>'
                 % (t, px + 28, y, DIM, FONT)
             )
             _uid[0] += 1
-            body.append(typed_line(px + 28 + 17, y, 16, text, dur,
+            body.append(typed_line(px + 28 + 16, y, 15, text, dur,
                                    begin=t, cid="c%d" % _uid[0], persist=False))
-            t += dur + 0.28
+            t += dur + 0.3
         else:
-            _, label, text = row
-            style = 'class="rv" style="animation-delay:%.2fs"' % t
-            if label:
-                body.append(
-                    '<text %s x="%d" y="%.1f" fill="%s" font-family="%s" '
-                    'font-size="16">%s</text>'
-                    % (style, px + 28, y, MINT, FONT, esc(label))
-                )
             body.append(
-                '<text %s x="%d" y="%.1f" fill="%s" font-family="%s" '
-                'font-size="16">%s</text>'
-                % (style, px + 28 + (LABEL_W if label else 0), y,
-                   BRIGHT if label else MUTED, FONT, esc(text))
+                '<text class="rv" style="animation-delay:%.2fs" x="%d" y="%.1f" '
+                'fill="%s" font-family="%s" font-size="15">%s</text>'
+                % (t, px + 28, y, BRIGHT, FONT, esc(row[1]))
             )
-            t += 0.13
+            t += 0.16
         y += ROW_H
 
     # resting prompt, blinking once the session finishes
@@ -316,9 +303,7 @@ def build_about():
         'height="16" fill="%s"/></g>' % (t, t + 0.1, px + 46, y - 6, BRIGHT)
     )
 
-    label = "Terminal session: whoami and cat now.txt — " + "; ".join(
-        ("%s: %s" % (r[1], r[2])) if r[1] else r[2]
-        for r in rows if r[0] == "out")
+    label = "whoami — " + " ".join(r[1] for r in rows if r[0] == "out")
     return (
         svg_open(ABOUT_W, h, esc(label))
         + "<style>%s%s</style>" % (rain_css(), REVEAL_CSS)
@@ -413,53 +398,50 @@ def fetch_leetcode(user="vidhaan_j"):
 
 
 def build_leetcode(data):
+    """Four even columns of big number over label over context line, divided by
+    hairlines — the same shape as the streak card it sits beside, so the pair
+    reads as one row rather than as two unrelated widgets.
+    """
     s, t = data["solved"], data["total"]
-    px, py, pw, ph = 1, 1, LC_W - 2, LC_H - 2
-    rows = [("easy", EASY, s.get("Easy", 0), t.get("Easy", 1)),
-            ("medium", MEDIUM, s.get("Medium", 0), t.get("Medium", 1)),
-            ("hard", HARD, s.get("Hard", 0), t.get("Hard", 1))]
-
-    body = [
-        '<text x="24" y="34" fill="%s" font-family="%s" font-size="13" '
-        'font-weight="700">$ leetcode --stats</text>' % (DIM, FONT),
-        '<text x="%d" y="34" text-anchor="end" fill="%s" font-family="%s" '
-        'font-size="12">%s</text>' % (LC_W - 24, MUTED, FONT, data["user"]),
-        '<text x="24" y="76" fill="%s" font-family="%s" font-size="34" '
-        'font-weight="700">%d</text>' % (BRIGHT, FONT, s.get("All", 0)),
-        '<text x="%d" y="76" fill="%s" font-family="%s" font-size="13">solved</text>'
-        % (34 + len(str(s.get("All", 0))) * 21, MUTED, FONT),
+    cols = [
+        (s.get("All", 0), "Solved", t.get("All", 0), MINT),
+        (s.get("Easy", 0), "Easy", t.get("Easy", 0), MUTED),
+        (s.get("Medium", 0), "Medium", t.get("Medium", 0), MUTED),
+        (s.get("Hard", 0), "Hard", t.get("Hard", 0), MUTED),
     ]
+    cw = LC_W / len(cols)
 
-    # Bars fill left-to-right on load — the one moment of motion on this card.
-    # Everything on a row shares one baseline; stacking the percentage under the
-    # bar pushed the last row's label off the bottom edge of the card.
-    bx, bw = 146, LC_W - 146 - 58
-    for i, (name, colour, got, tot) in enumerate(rows):
-        y = 118 + i * 32
-        pct = got / tot if tot else 0
-        body.append('<text x="24" y="%d" fill="%s" font-family="%s" font-size="13">%s</text>'
-                    % (y, colour, FONT, name))
-        body.append('<text x="132" y="%d" text-anchor="end" fill="%s" font-family="%s" '
-                    'font-size="13">%d</text>' % (y, BRIGHT, FONT, got))
-        body.append('<rect x="%d" y="%d" width="%d" height="6" rx="3" fill="%s" '
-                    'fill-opacity="0.22"/>' % (bx, y - 9, bw, colour))
+    body = ['<text x="%.1f" y="30" text-anchor="middle" fill="%s" font-family="%s" '
+            'font-size="11" letter-spacing="2.5">LEETCODE</text>' % (LC_W / 2, MUTED, FONT)]
+
+    for i in range(1, len(cols)):
+        body.append('<line x1="%.1f" y1="52" x2="%.1f" y2="168" stroke="%s" '
+                    'stroke-width="1.2"/>' % (i * cw, i * cw, MINT))
+
+    for i, (got, name, tot, colour) in enumerate(cols):
+        cx = i * cw + cw / 2
         body.append(
-            '<rect x="%d" y="%d" width="0" height="6" rx="3" fill="%s">'
-            '<animate attributeName="width" values="0;%.1f" dur="0.9s" begin="%.2fs" '
-            'fill="freeze" calcMode="spline" keySplines="0.16 1 0.3 1" keyTimes="0;1"/>'
-            '</rect>' % (bx, y - 9, colour, bw * pct, 0.25 + i * 0.12)
+            '<g class="rv" style="animation-duration:.5s;animation-delay:%.2fs">'
+            '<text x="%.1f" y="112" text-anchor="middle" fill="%s" font-family="%s" '
+            'font-size="34" font-weight="700">%s</text>'
+            '<text x="%.1f" y="140" text-anchor="middle" fill="%s" font-family="%s" '
+            'font-size="13">%s</text>'
+            '<text x="%.1f" y="162" text-anchor="middle" fill="%s" font-family="%s" '
+            'font-size="11">of %s</text></g>'
+            % (0.1 + i * 0.09,
+               cx, BRIGHT, FONT, "{:,}".format(got),
+               cx, colour, FONT, name,
+               cx, MUTED, FONT, "{:,}".format(tot))
         )
-        body.append('<text x="%d" y="%d" text-anchor="end" fill="%s" font-family="%s" '
-                    'font-size="12">%d%%</text>'
-                    % (LC_W - 24, y, MUTED, FONT, round(pct * 100)))
 
-    label = "LeetCode: %d solved — %s" % (
-        s.get("All", 0),
-        ", ".join("%d %s" % (r[2], r[0]) for r in rows))
+    label = "LeetCode — %d solved of %d: %s" % (
+        s.get("All", 0), t.get("All", 0),
+        ", ".join("%d %s" % (c[0], c[1].lower()) for c in cols[1:]))
     return (
         svg_open(LC_W, LC_H, label)
-        + '<rect x="%d" y="%d" width="%d" height="%d" rx="10" fill="%s" stroke="%s"/>'
-          % (px, py, pw, ph, VOID, LINE)
+        + "<style>%s</style>" % REVEAL_CSS
+        + '<rect x="1" y="1" width="%d" height="%d" rx="10" fill="%s" stroke="%s"/>'
+          % (LC_W - 2, LC_H - 2, VOID, LINE)
         + "".join(body)
         + "</svg>"
     )

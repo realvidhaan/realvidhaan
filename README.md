@@ -1,6 +1,6 @@
-<img src="assets/hero.svg" width="100%" alt="Terminal: guest@vidhaan:~ typing &quot;Hello, I'm Vidhaan&quot; — high-school developer who builds things people actually use" />
+<img src="assets/hero.svg" width="100%" alt="Terminal: guest@vidhaan:~ typing &quot;Hello, I'm Vidhaan&quot; — full stack developer" />
 
-<img src="assets/about.svg" width="100%" alt="Terminal session — whoami: vidhaan, 16, building software that solves problems I actually have. cat now.txt — building: Velo, push-to-talk voice dictation for macOS, open source. shipping: BasisRide, carpool matching for families at my school. learning: how models work underneath, and how to put them in apps. competing: ACSL, 39/40 at Nationals, 3/3 this Summer League. offline: PADI scuba certified since I was 10." />
+<img src="assets/about.svg" width="100%" alt="Terminal: $ whoami — I'm currently working on Velo, a push-to-talk open-source clone of WisprFlow. I'm looking to collaborate on getting BasisRide into more carpool groups at my school. I'm currently learning how AI works under the hood and how to integrate AI in my own apps. Ask me about training for ACSL; I scored 39/40 at Nationals and scored 3/3 in this year's Summer League. Fun fact: I earned my PADI Scuba Diving License when I was 10 years old!" />
 
 <img src="assets/rain-a.svg" width="100%" alt="" />
 
@@ -72,7 +72,7 @@ Point the cleanup step at Ollama and nothing ever leaves your machine.
 ## Numbers
 
 <p align="center">
-<img height="196" src="assets/leetcode.svg" alt="LeetCode: 820 problems solved — 576 easy, 232 medium, 12 hard" />
+<img height="196" src="assets/leetcode.svg" alt="LeetCode — 820 solved of 4,005: 576 easy, 232 medium, 12 hard" />
 <img height="196" src="https://streak-stats.demolab.com?user=realvidhaan&hide_border=false&background=05070A&border=0B3B24&stroke=39FF88&ring=39FF88&fire=39FF88&currStreakNum=F2FFF8&sideNums=F2FFF8&currStreakLabel=39FF88&sideLabels=5B6B63&dates=5B6B63" alt="GitHub contribution streak" />
 </p>
 
@@ -87,4 +87,3 @@ Point the cleanup step at Ollama and nothing ever leaves your machine.
 [![Portfolio](https://img.shields.io/badge/vidhaan.info-05070A?style=for-the-badge&logo=safari&logoColor=39FF88)](https://vidhaan.info)
 [![Email](https://img.shields.io/badge/realvidhaan%40gmail.com-05070A?style=for-the-badge&logo=gmail&logoColor=39FF88)](mailto:realvidhaan@gmail.com)
 [![LeetCode](https://img.shields.io/badge/Vidhaan__J-05070A?style=for-the-badge&logo=leetcode&logoColor=39FF88)](https://leetcode.com/u/vidhaan_j/)
-![Profile views](https://komarev.com/ghpvc/?username=realvidhaan&color=39FF88&style=for-the-badge&label=PROFILE+VIEWS)
