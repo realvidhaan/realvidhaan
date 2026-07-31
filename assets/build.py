@@ -234,7 +234,7 @@ def build_hero():
         + typed_line(tx + len(PROMPT) * cell, ty, size, TYPED, 1.8)
         + '<text class="rv" style="animation-duration:.6s;animation-delay:2s" '
           'x="%.1f" y="%.1f" text-anchor="middle" fill="%s" font-family="%s" '
-          'font-size="15">%s</text>'
+          'font-size="16">%s</text>'
           % (px + pw / 2, py + 168, MUTED, FONT, esc(CAPTION))
         + "</svg>"
     )
@@ -256,16 +256,16 @@ SESSION = [
     ("out", "competing", "ACSL — 39/40 at Nationals, 3/3 this Summer League"),
     ("out", "offline", "PADI scuba certified since I was 10"),
 ]
-LABEL_W = 108  # x-offset of the value column, from the panel's text gutter
+LABEL_W = 112  # x-offset of the value column, from the panel's text gutter
 
-ABOUT_W = 1200
-ROW_H = 30
+ABOUT_W = 940
+ROW_H = 32
 
 
 def build_about():
     rows = [r for r in SESSION]
     ph = 78 + len(rows) * ROW_H + 34
-    px, pw = 60, ABOUT_W - 120
+    px, pw = 40, ABOUT_W - 80
     py = 26
     h = ph + 52
 
@@ -279,11 +279,11 @@ def build_about():
             dur = max(0.45, len(text) * 0.045)
             body.append(
                 '<text class="rv" style="animation-delay:%.2fs" x="%d" y="%.1f" '
-                'fill="%s" font-family="%s" font-size="15" font-weight="700">$</text>'
+                'fill="%s" font-family="%s" font-size="16" font-weight="700">$</text>'
                 % (t, px + 28, y, DIM, FONT)
             )
             _uid[0] += 1
-            body.append(typed_line(px + 28 + 16, y, 15, text, dur,
+            body.append(typed_line(px + 28 + 17, y, 16, text, dur,
                                    begin=t, cid="c%d" % _uid[0], persist=False))
             t += dur + 0.28
         else:
@@ -292,12 +292,12 @@ def build_about():
             if label:
                 body.append(
                     '<text %s x="%d" y="%.1f" fill="%s" font-family="%s" '
-                    'font-size="15">%s</text>'
+                    'font-size="16">%s</text>'
                     % (style, px + 28, y, MINT, FONT, esc(label))
                 )
             body.append(
                 '<text %s x="%d" y="%.1f" fill="%s" font-family="%s" '
-                'font-size="15">%s</text>'
+                'font-size="16">%s</text>'
                 % (style, px + 28 + (LABEL_W if label else 0), y,
                    BRIGHT if label else MUTED, FONT, esc(text))
             )
@@ -307,13 +307,13 @@ def build_about():
     # resting prompt, blinking once the session finishes
     body.append(
         '<text class="rv" style="animation-delay:%.2fs" x="%d" y="%.1f" fill="%s" '
-        'font-family="%s" font-size="15" font-weight="700">$</text>'
+        'font-family="%s" font-size="16" font-weight="700">$</text>'
         % (t, px + 28, y + 6, DIM, FONT)
     )
     body.append(
         '<g class="rv" style="animation-delay:%.2fs">'
         '<rect class="blink" style="animation-delay:%.2fs" x="%d" y="%.1f" width="8" '
-        'height="15" fill="%s"/></g>' % (t, t + 0.1, px + 46, y - 6, BRIGHT)
+        'height="16" fill="%s"/></g>' % (t, t + 0.1, px + 46, y - 6, BRIGHT)
     )
 
     label = "Terminal session: whoami and cat now.txt — " + "; ".join(
