@@ -38,8 +38,6 @@ guest@vidhaan:~$ _
 
 <div align="center">
 
-<img height="165" src="https://github-readme-stats.vercel.app/api/top-langs/?username=realvidhaan&layout=compact&hide_border=false&bg_color=05070A&title_color=39FF88&text_color=D7E4DD&border_color=0B3B24" alt="Top languages" />
-
 <img src="https://streak-stats.demolab.com?user=realvidhaan&hide_border=false&background=05070A&border=0B3B24&stroke=39FF88&ring=39FF88&fire=39FF88&currStreakNum=F2FFF8&sideNums=F2FFF8&currStreakLabel=39FF88&sideLabels=5B6B63&dates=5B6B63" alt="GitHub streak" />
 
 </div>
