@@ -214,7 +214,7 @@ def build_hero():
     ty = py + 118
 
     return (
-        svg_open(HERO_W, HERO_H, "Hello, I'm Vidhaan — high-school developer")
+        svg_open(HERO_W, HERO_H, "Hello, I'm Vidhaan — %s" % CAPTION)
         + "<style>%s%s</style>" % (rain_css(), REVEAL_CSS)
         + "<defs>%s</defs>" % vertical_fade(HERO_H, 0.14)
         + '<rect width="%d" height="%d" fill="%s"/>' % (HERO_W, HERO_H, VOID)
