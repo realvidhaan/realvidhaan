@@ -431,25 +431,27 @@ def build_leetcode(data):
     ]
 
     # Bars fill left-to-right on load — the one moment of motion on this card.
-    bx, bw = 150, LC_W - 150 - 24
+    # Everything on a row shares one baseline; stacking the percentage under the
+    # bar pushed the last row's label off the bottom edge of the card.
+    bx, bw = 146, LC_W - 146 - 58
     for i, (name, colour, got, tot) in enumerate(rows):
-        y = 116 + i * 30
+        y = 118 + i * 32
         pct = got / tot if tot else 0
         body.append('<text x="24" y="%d" fill="%s" font-family="%s" font-size="13">%s</text>'
-                    % (y + 10, colour, FONT, name))
-        body.append('<text x="140" y="%d" text-anchor="end" fill="%s" font-family="%s" '
-                    'font-size="13">%d</text>' % (y + 10, BRIGHT, FONT, got))
+                    % (y, colour, FONT, name))
+        body.append('<text x="132" y="%d" text-anchor="end" fill="%s" font-family="%s" '
+                    'font-size="13">%d</text>' % (y, BRIGHT, FONT, got))
         body.append('<rect x="%d" y="%d" width="%d" height="6" rx="3" fill="%s" '
-                    'fill-opacity="0.25"/>' % (bx, y + 2, bw, colour))
+                    'fill-opacity="0.22"/>' % (bx, y - 9, bw, colour))
         body.append(
             '<rect x="%d" y="%d" width="0" height="6" rx="3" fill="%s">'
             '<animate attributeName="width" values="0;%.1f" dur="0.9s" begin="%.2fs" '
             'fill="freeze" calcMode="spline" keySplines="0.16 1 0.3 1" keyTimes="0;1"/>'
-            '</rect>' % (bx, y + 2, colour, bw * pct, 0.25 + i * 0.12)
+            '</rect>' % (bx, y - 9, colour, bw * pct, 0.25 + i * 0.12)
         )
         body.append('<text x="%d" y="%d" text-anchor="end" fill="%s" font-family="%s" '
-                    'font-size="11">%d%%</text>' % (LC_W - 24, y + 26, MUTED, FONT,
-                                                    round(pct * 100)))
+                    'font-size="12">%d%%</text>'
+                    % (LC_W - 24, y, MUTED, FONT, round(pct * 100)))
 
     label = "LeetCode: %d solved — %s" % (
         s.get("All", 0),
