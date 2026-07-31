@@ -112,6 +112,32 @@ def rain_css():
             "animation-iteration-count:infinite}%s" % (STRIP, rows))
 
 
+# Every reveal animates *from* a hidden state into the element's own natural
+# one, with fill-mode backwards. The resting state is therefore fully legible,
+# so a renderer that ignores the animation — reduced motion, GitHub's mobile
+# app, any static rasteriser — still shows all of the content. Starting at
+# opacity 0 and animating up would make the motion load-bearing for legibility.
+REVEAL_CSS = (
+    # Per-character reveal rides on fill-opacity, not on a clip: CSS cannot
+    # animate the geometry of a rect inside <clipPath>, which silently left the
+    # text unclipped while the caret marched correctly across it.
+    "@keyframes rvf{from{fill-opacity:0}}"
+    "@keyframes caret{from{transform:translateX(var(--w))}}"
+    "@keyframes rv{from{opacity:0}}"
+    "@keyframes blink{50%{opacity:0}}"
+    "@keyframes gone{to{opacity:0}}"
+    ".ch{animation:rvf .01s step-end backwards}"
+    ".caret{animation-name:caret;animation-fill-mode:backwards}"
+    ".rv{animation:rv .18s backwards}"
+    ".blink{animation:blink 1s step-end infinite backwards}"
+    # a finished command hands its caret to the next line, the way a real
+    # terminal keeps exactly one
+    ".gone{animation:gone .01s step-end forwards}"
+    "@media(prefers-reduced-motion:reduce){"
+    ".c,.ch,.caret,.rv,.blink,.gone{animation:none}}"
+)
+
+
 def vertical_fade(height, soft=0.18):
     """Rain dissolves into the page instead of ending on a hard edge."""
     return (
@@ -142,31 +168,39 @@ TYPED = "Hello, I'm Vidhaan"
 CAPTION = "high-school developer — I build things people actually use"
 
 
-def typed_line(x, y, size, text, dur):
-    """Char-by-char reveal via a stepped clip, with the cursor stepping in sync.
+def typed_line(x, y, size, text, dur, begin=0.0, cid="tc", persist=True):
+    """Char-by-char reveal via a stepped clip, with the caret stepping in sync.
 
-    textLength pins the run to an exact width so the cursor lands correctly no
+    Resting state is the finished line: the clip is full width and the caret
+    sits at the end, so this degrades to plain readable text.
+
+    textLength pins the run to an exact width so the caret lands correctly no
     matter which monospace face the viewer's machine resolves.
     """
     cell = size * 0.6
     w = len(text) * cell
-    steps = len(text)
-    widths = ";".join("%.2f" % (w * i / steps) for i in range(steps + 1))
-    xs = ";".join("%.2f" % (x + w * i / steps) for i in range(steps + 1))
+    n = len(text)
+
+    # textLength distributes the run across the tspans, so spacing stays exact
+    # whichever monospace face resolves; each tspan just fades itself in.
+    spans = "".join(
+        '<tspan class="ch" style="animation-delay:%.3fs">%s</tspan>'
+        % (begin + i * dur / n, esc(ch).replace(" ", "&#160;"))
+        for i, ch in enumerate(text)
+    )
+    caret = ('<rect class="blink" style="animation-delay:%ss" x="%.2f" y="%.2f" '
+             'width="%.2f" height="%.2f" fill="%s"/>'
+             % (begin + dur, x + w, y - size * 0.76, size * 0.5, size * 0.9, BRIGHT))
+    if not persist:
+        caret = ('<g class="gone" style="animation-delay:%ss">%s</g>'
+                 % (begin + dur + 0.2, caret))
     return (
-        '<clipPath id="tc"><rect x="%.2f" y="%.2f" width="0" height="%.2f">'
-        '<animate attributeName="width" values="%s" dur="%ss" '
-        'calcMode="discrete" fill="freeze"/></rect></clipPath>'
-        '<text clip-path="url(#tc)" x="%.2f" y="%.2f" fill="%s" font-family="%s" '
-        'font-size="%d" font-weight="700" textLength="%.2f" lengthAdjust="spacing">%s</text>'
-        '<rect y="%.2f" width="%.2f" height="%.2f" fill="%s" x="%.2f">'
-        '<animate attributeName="x" values="%s" dur="%ss" calcMode="discrete" fill="freeze"/>'
-        '<animate attributeName="opacity" values="1;0" dur="1s" begin="%ss" '
-        'repeatCount="indefinite"/></rect>'
-        % (x, y - size, size * 1.3, widths, dur,
-           x, y, BRIGHT, FONT, size, w, esc(text),
-           y - size * 0.76, size * 0.5, size * 0.9, BRIGHT, x,
-           xs, dur, dur)
+        '<text x="%.2f" y="%.2f" fill="%s" font-family="%s" font-size="%d" '
+        'font-weight="700" textLength="%.2f" lengthAdjust="spacing" '
+        'xml:space="preserve">%s</text>'
+        '<g class="caret" style="--w:-%.2fpx;animation-duration:%ss;'
+        'animation-delay:%ss;animation-timing-function:steps(%d,end)">%s</g>'
+        % (x, y, BRIGHT, FONT, size, w, spans, w, dur, begin, n, caret)
     )
 
 
@@ -181,7 +215,7 @@ def build_hero():
 
     return (
         svg_open(HERO_W, HERO_H, "Hello, I'm Vidhaan — high-school developer")
-        + "<style>%s</style>" % rain_css()
+        + "<style>%s%s</style>" % (rain_css(), REVEAL_CSS)
         + "<defs>%s</defs>" % vertical_fade(HERO_H, 0.14)
         + '<rect width="%d" height="%d" fill="%s"/>' % (HERO_W, HERO_H, VOID)
         + rain(HERO_W, HERO_H, seed=11, density=0.85, opacity=0.55)
@@ -198,9 +232,9 @@ def build_hero():
         + '<text x="%.1f" y="%.1f" fill="%s" font-family="%s" font-size="%d" '
           'font-weight="700">%s</text>' % (tx, ty, DIM, FONT, size, PROMPT.strip())
         + typed_line(tx + len(PROMPT) * cell, ty, size, TYPED, 1.8)
-        + '<text x="%.1f" y="%.1f" text-anchor="middle" fill="%s" font-family="%s" '
-          'font-size="15" opacity="0"><animate attributeName="opacity" values="0;1" '
-          'dur="0.6s" begin="2.0s" fill="freeze"/>%s</text>'
+        + '<text class="rv" style="animation-duration:.6s;animation-delay:2s" '
+          'x="%.1f" y="%.1f" text-anchor="middle" fill="%s" font-family="%s" '
+          'font-size="15">%s</text>'
           % (px + pw / 2, py + 168, MUTED, FONT, esc(CAPTION))
         + "</svg>"
     )
@@ -244,42 +278,42 @@ def build_about():
             text = row[1]
             dur = max(0.45, len(text) * 0.045)
             body.append(
-                '<text x="%d" y="%.1f" fill="%s" font-family="%s" font-size="15" '
-                'font-weight="700" opacity="0"><animate attributeName="opacity" '
-                'values="0;1" dur="0.01s" begin="%.2fs" fill="freeze"/>$</text>'
-                % (px + 28, y, DIM, FONT, t)
+                '<text class="rv" style="animation-delay:%.2fs" x="%d" y="%.1f" '
+                'fill="%s" font-family="%s" font-size="15" font-weight="700">$</text>'
+                % (t, px + 28, y, DIM, FONT)
             )
-            body.append(_type_run(px + 28 + 16, y, 15, text, dur, t))
+            _uid[0] += 1
+            body.append(typed_line(px + 28 + 16, y, 15, text, dur,
+                                   begin=t, cid="c%d" % _uid[0], persist=False))
             t += dur + 0.28
         else:
             _, label, text = row
-            reveal = ('<animate attributeName="opacity" values="0;1" dur="0.18s" '
-                      'begin="%.2fs" fill="freeze"/>' % t)
+            style = 'class="rv" style="animation-delay:%.2fs"' % t
             if label:
                 body.append(
-                    '<text x="%d" y="%.1f" fill="%s" font-family="%s" font-size="15" '
-                    'opacity="0">%s%s</text>'
-                    % (px + 28, y, MINT, FONT, reveal, esc(label))
+                    '<text %s x="%d" y="%.1f" fill="%s" font-family="%s" '
+                    'font-size="15">%s</text>'
+                    % (style, px + 28, y, MINT, FONT, esc(label))
                 )
             body.append(
-                '<text x="%d" y="%.1f" fill="%s" font-family="%s" font-size="15" '
-                'opacity="0">%s%s</text>'
-                % (px + 28 + (LABEL_W if label else 0), y,
-                   BRIGHT if label else MUTED, FONT, reveal, esc(text))
+                '<text %s x="%d" y="%.1f" fill="%s" font-family="%s" '
+                'font-size="15">%s</text>'
+                % (style, px + 28 + (LABEL_W if label else 0), y,
+                   BRIGHT if label else MUTED, FONT, esc(text))
             )
             t += 0.13
         y += ROW_H
 
     # resting prompt, blinking once the session finishes
     body.append(
-        '<text x="%d" y="%.1f" fill="%s" font-family="%s" font-size="15" '
-        'font-weight="700" opacity="0"><animate attributeName="opacity" values="0;1" '
-        'dur="0.01s" begin="%.2fs" fill="freeze"/>$</text>' % (px + 28, y + 6, DIM, FONT, t)
+        '<text class="rv" style="animation-delay:%.2fs" x="%d" y="%.1f" fill="%s" '
+        'font-family="%s" font-size="15" font-weight="700">$</text>'
+        % (t, px + 28, y + 6, DIM, FONT)
     )
     body.append(
-        '<rect x="%d" y="%.1f" width="8" height="15" fill="%s" opacity="0">'
-        '<animate attributeName="opacity" values="1;0" dur="1s" begin="%.2fs" '
-        'repeatCount="indefinite"/></rect>' % (px + 46, y - 6, BRIGHT, t + 0.1)
+        '<g class="rv" style="animation-delay:%.2fs">'
+        '<rect class="blink" style="animation-delay:%.2fs" x="%d" y="%.1f" width="8" '
+        'height="15" fill="%s"/></g>' % (t, t + 0.1, px + 46, y - 6, BRIGHT)
     )
 
     label = "Terminal session: whoami and cat now.txt — " + "; ".join(
@@ -287,7 +321,7 @@ def build_about():
         for r in rows if r[0] == "out")
     return (
         svg_open(ABOUT_W, h, esc(label))
-        + "<style>%s</style>" % rain_css()
+        + "<style>%s%s</style>" % (rain_css(), REVEAL_CSS)
         + "<defs>%s</defs>" % vertical_fade(h, 0.12)
         + '<rect width="%d" height="%d" fill="%s"/>' % (ABOUT_W, h, VOID)
         + rain(ABOUT_W, h, seed=29, density=0.8, opacity=0.42)
