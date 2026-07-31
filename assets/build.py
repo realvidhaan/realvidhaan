@@ -8,6 +8,7 @@ Output is deterministic (fixed RNG seeds), so re-running with unchanged data
 produces byte-identical files and the daily workflow makes no noise commits.
 """
 import json
+import math
 import os
 import random
 import subprocess
@@ -367,7 +368,10 @@ LC_W, LC_H = 500, 200
 
 QUERY = ("query u($u:String!){allQuestionsCount{difficulty count}"
          "matchedUser(username:$u){submitStatsGlobal{acSubmissionNum"
-         "{difficulty count}}}}")
+         "{difficulty count}}}"
+         # attempted-but-unsolved, the "Attempting" figure on the ring
+         "userProfileUserQuestionProgressV2(userSlug:$u){"
+         "numFailedQuestions{count difficulty}}}")
 
 
 def fetch_leetcode(user="vidhaan_j"):
@@ -394,52 +398,109 @@ def fetch_leetcode(user="vidhaan_j"):
             for x in d["matchedUser"]["submitStatsGlobal"]["acSubmissionNum"]}
     if not soln.get("All"):
         raise ValueError("no solved counts returned for %s" % user)
-    return {"user": user, "solved": soln, "total": total}
+    progress = d.get("userProfileUserQuestionProgressV2") or {}
+    attempting = sum(x["count"] for x in progress.get("numFailedQuestions") or [])
+    return {"user": user, "solved": soln, "total": total, "attempting": attempting}
+
+
+def _arc(cx, cy, r, a0, a1):
+    """Path for an arc, angles in degrees clockwise from 12 o'clock."""
+    def pt(a):
+        rad = math.radians(a)
+        return cx + r * math.sin(rad), cy - r * math.cos(rad)
+    x0, y0 = pt(a0)
+    x1, y1 = pt(a1)
+    large = 1 if abs(a1 - a0) > 180 else 0
+    return "M %.2f %.2f A %.2f %.2f 0 %d 1 %.2f %.2f" % (x0, y0, r, r, large, x1, y1)
 
 
 def build_leetcode(data):
-    """Four even columns of big number over label over context line, divided by
-    hairlines — the same shape as the streak card it sits beside, so the pair
-    reads as one row rather than as two unrelated widgets.
+    """LeetCode's own progress ring: one arc per difficulty, sized by how much
+    of the catalogue that difficulty is, filled by how much of it is solved.
+    Rendered in this page's palette and mono type so it reads as a sibling of
+    the streak card rather than as a transplant from another site.
     """
-    s, t = data["solved"], data["total"]
-    cols = [
-        (s.get("All", 0), "Solved", t.get("All", 0), MINT),
-        (s.get("Easy", 0), "Easy", t.get("Easy", 0), MUTED),
-        (s.get("Medium", 0), "Medium", t.get("Medium", 0), MUTED),
-        (s.get("Hard", 0), "Hard", t.get("Hard", 0), MUTED),
-    ]
-    cw = LC_W / len(cols)
+    s, t, att = data["solved"], data["total"], data.get("attempting", 0)
+    diffs = [("Easy", EASY, s.get("Easy", 0), t.get("Easy", 1)),
+             ("Medium", MEDIUM, s.get("Medium", 0), t.get("Medium", 1)),
+             ("Hard", HARD, s.get("Hard", 0), t.get("Hard", 1))]
 
-    body = ['<text x="%.1f" y="30" text-anchor="middle" fill="%s" font-family="%s" '
-            'font-size="11" letter-spacing="2.5">LEETCODE</text>' % (LC_W / 2, MUTED, FONT)]
+    cx, cy, r = 142, 94, 62   # lifted so the arc ends clear the caption below
+    span, pad = 270.0, 2.0          # 270° of ring, small gap between segments
+    catalogue = sum(d[3] for d in diffs) or 1
 
-    for i in range(1, len(cols)):
-        body.append('<line x1="%.1f" y1="52" x2="%.1f" y2="168" stroke="%s" '
-                    'stroke-width="1.2"/>' % (i * cw, i * cw, MINT))
+    body, a = [], -135.0
+    for i, (name, colour, got, tot) in enumerate(diffs):
+        seg = span * tot / catalogue
+        a0, a1 = a + pad / 2, a + seg - pad / 2
+        body.append('<path d="%s" fill="none" stroke="%s" stroke-opacity="0.2" '
+                    'stroke-width="9" stroke-linecap="round"/>'
+                    % (_arc(cx, cy, r, a0, a1), colour))
+        if got:
+            body.append(
+                '<path class="arc" style="animation-delay:%.2fs" pathLength="100" '
+                'd="%s" fill="none" stroke="%s" stroke-width="9" '
+                'stroke-linecap="round"/>'
+                % (0.15 + i * 0.12,
+                   _arc(cx, cy, r, a0, a0 + (a1 - a0) * got / tot), colour))
+        a += seg
 
-    for i, (got, name, tot, colour) in enumerate(cols):
-        cx = i * cw + cw / 2
+    solved, whole = s.get("All", 0), t.get("All", 0)
+    big, small = "{:,}".format(solved), "/%s" % whole
+    bw, sw = len(big) * 34 * 0.6, len(small) * 15 * 0.6
+    x0 = cx - (bw + sw) / 2
+    body.append(
+        '<g class="rv" style="animation-duration:.5s;animation-delay:.45s">'
+        '<text x="%.1f" y="96" fill="%s" font-family="%s" font-size="34" '
+        'font-weight="700">%s</text>'
+        '<text x="%.1f" y="96" fill="%s" font-family="%s" font-size="15">%s</text>'
+        '<text x="%d" y="120" text-anchor="middle" fill="%s" font-family="%s" '
+        'font-size="13">Solved</text></g>'
+        % (x0, BRIGHT, FONT, big, x0 + bw, MUTED, FONT, small, cx, MINT, FONT)
+    )
+    if att:
+        # positioned as two runs with an explicit gap — a leading space in the
+        # second run would be collapsed away by SVG
+        cell, word = 12 * 0.6, "Attempting"
+        n = str(att)
+        aw = (len(n) + 1 + len(word)) * cell
         body.append(
-            '<g class="rv" style="animation-duration:.5s;animation-delay:%.2fs">'
-            '<text x="%.1f" y="112" text-anchor="middle" fill="%s" font-family="%s" '
-            'font-size="34" font-weight="700">%s</text>'
-            '<text x="%.1f" y="140" text-anchor="middle" fill="%s" font-family="%s" '
-            'font-size="13">%s</text>'
-            '<text x="%.1f" y="162" text-anchor="middle" fill="%s" font-family="%s" '
-            'font-size="11">of %s</text></g>'
-            % (0.1 + i * 0.09,
-               cx, BRIGHT, FONT, "{:,}".format(got),
-               cx, colour, FONT, name,
-               cx, MUTED, FONT, "{:,}".format(tot))
+            '<g class="rv" style="animation-duration:.5s;animation-delay:.55s">'
+            '<text x="%.1f" y="158" fill="%s" font-family="%s" font-size="12" '
+            'font-weight="700">%s</text>'
+            '<text x="%.1f" y="158" fill="%s" font-family="%s" font-size="12">%s</text>'
+            '</g>'
+            % (cx - aw / 2, BRIGHT, FONT, n,
+               cx - aw / 2 + (len(n) + 1) * cell, MUTED, FONT, word)
         )
 
-    label = "LeetCode — %d solved of %d: %s" % (
-        s.get("All", 0), t.get("All", 0),
-        ", ".join("%d %s" % (c[0], c[1].lower()) for c in cols[1:]))
+    bx, bwid = 286, 192
+    for i, (name, colour, got, tot) in enumerate(diffs):
+        by = 17 + i * 58
+        body.append(
+            '<g class="rv" style="animation-duration:.5s;animation-delay:%.2fs">'
+            '<rect x="%d" y="%d" width="%d" height="50" rx="8" fill="%s" stroke="%s"/>'
+            '<text x="%d" y="%d" text-anchor="middle" fill="%s" font-family="%s" '
+            'font-size="13" font-weight="700">%s</text>'
+            '<text x="%d" y="%d" text-anchor="middle" fill="%s" font-family="%s" '
+            'font-size="14">%d/%d</text></g>'
+            % (0.2 + i * 0.09, bx, by, bwid, PANEL, LINE,
+               bx + bwid // 2, by + 21, colour, FONT, name,
+               bx + bwid // 2, by + 40, BRIGHT, FONT, got, tot)
+        )
+
+    body.append('<text x="20" y="26" fill="%s" font-family="%s" font-size="9" '
+                'letter-spacing="1.5">LEETCODE</text>' % (MUTED, FONT))
+
+    label = "LeetCode — %d of %d solved (%d attempting): %s" % (
+        solved, whole, att,
+        ", ".join("%d of %d %s" % (d[2], d[3], d[0].lower()) for d in diffs))
     return (
         svg_open(LC_W, LC_H, label)
-        + "<style>%s</style>" % REVEAL_CSS
+        + "<style>%s@keyframes draw{from{stroke-dashoffset:100}}"
+          ".arc{stroke-dasharray:100;animation:draw .9s cubic-bezier(.16,1,.3,1) "
+          "backwards}@media(prefers-reduced-motion:reduce){.arc{animation:none}}"
+          "</style>" % REVEAL_CSS
         + '<rect x="1" y="1" width="%d" height="%d" rx="10" fill="%s" stroke="%s"/>'
           % (LC_W - 2, LC_H - 2, VOID, LINE)
         + "".join(body)
