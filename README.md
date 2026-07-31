@@ -69,7 +69,7 @@ Point the cleanup step at Ollama and nothing ever leaves your machine.
 
 <img src="assets/rain-b.svg" width="100%" alt="" />
 
-## Numbers
+## LeetCode and GitHub stats
 
 <p align="center">
 <img height="196" src="assets/leetcode.svg" alt="LeetCode — 820 solved of 4,005: 576 easy, 232 medium, 12 hard" />

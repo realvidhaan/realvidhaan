@@ -31,6 +31,8 @@ MUTED = "#5B6B63"  # captions, labels
 EASY, MEDIUM, HARD = "#39FF88", "#FFC53D", "#FF5F56"
 
 FONT = "ui-monospace,'SF Mono','JetBrains Mono',Menlo,Consolas,monospace"
+# the streak card this sits beside declares exactly this stack
+SANS = "'Segoe UI',Ubuntu,sans-serif"
 
 # --------------------------------------------------------------- the rain ---
 GLYPH_H = 16    # vertical distance between glyphs in a column
@@ -363,7 +365,7 @@ def build_divider(seed):
 
 
 # --------------------------------------------------------------- leetcode ---
-LC_W, LC_H = 500, 200
+LC_W, LC_H = 495, 195   # identical to the streak card beside it
 
 
 QUERY = ("query u($u:String!){allQuestionsCount{difficulty count}"
@@ -425,7 +427,7 @@ def build_leetcode(data):
              ("Medium", MEDIUM, s.get("Medium", 0), t.get("Medium", 1)),
              ("Hard", HARD, s.get("Hard", 0), t.get("Hard", 1))]
 
-    cx, cy, r = 142, 94, 62   # lifted so the arc ends clear the caption below
+    cx, cy, r = 139, 95, 62
     span, pad = 270.0, 2.0          # 270° of ring, small gap between segments
     catalogue = sum(d[3] for d in diffs) or 1
 
@@ -434,63 +436,56 @@ def build_leetcode(data):
         seg = span * tot / catalogue
         a0, a1 = a + pad / 2, a + seg - pad / 2
         body.append('<path d="%s" fill="none" stroke="%s" stroke-opacity="0.2" '
-                    'stroke-width="9" stroke-linecap="round"/>'
+                    'stroke-width="8" stroke-linecap="round"/>'
                     % (_arc(cx, cy, r, a0, a1), colour))
         if got:
             body.append(
                 '<path class="arc" style="animation-delay:%.2fs" pathLength="100" '
-                'd="%s" fill="none" stroke="%s" stroke-width="9" '
+                'd="%s" fill="none" stroke="%s" stroke-width="8" '
                 'stroke-linecap="round"/>'
                 % (0.15 + i * 0.12,
                    _arc(cx, cy, r, a0, a0 + (a1 - a0) * got / tot), colour))
         a += seg
 
     solved, whole = s.get("All", 0), t.get("All", 0)
-    big, small = "{:,}".format(solved), "/%s" % whole
-    bw, sw = len(big) * 34 * 0.6, len(small) * 15 * 0.6
-    x0 = cx - (bw + sw) / 2
+    # Centred with text-anchor and tspans rather than measured offsets: the
+    # neighbouring card's face is proportional, so per-character width maths
+    # no longer holds.
     body.append(
         '<g class="rv" style="animation-duration:.5s;animation-delay:.45s">'
-        '<text x="%.1f" y="96" fill="%s" font-family="%s" font-size="34" '
-        'font-weight="700">%s</text>'
-        '<text x="%.1f" y="96" fill="%s" font-family="%s" font-size="15">%s</text>'
-        '<text x="%d" y="120" text-anchor="middle" fill="%s" font-family="%s" '
-        'font-size="13">Solved</text></g>'
-        % (x0, BRIGHT, FONT, big, x0 + bw, MUTED, FONT, small, cx, MINT, FONT)
+        '<text x="%d" y="105" text-anchor="middle" fill="%s" font-family="%s" '
+        'font-size="28" font-weight="700">%s'
+        '<tspan font-size="13" font-weight="400" fill="%s">/%s</tspan></text>'
+        '<text x="%d" y="129" text-anchor="middle" fill="%s" font-family="%s" '
+        'font-size="14" font-weight="700">Solved</text></g>'
+        % (cx, BRIGHT, SANS, "{:,}".format(solved), MUTED, whole,
+           cx, MINT, SANS)
     )
     if att:
-        # positioned as two runs with an explicit gap — a leading space in the
-        # second run would be collapsed away by SVG
-        cell, word = 12 * 0.6, "Attempting"
-        n = str(att)
-        aw = (len(n) + 1 + len(word)) * cell
         body.append(
             '<g class="rv" style="animation-duration:.5s;animation-delay:.55s">'
-            '<text x="%.1f" y="158" fill="%s" font-family="%s" font-size="12" '
-            'font-weight="700">%s</text>'
-            '<text x="%.1f" y="158" fill="%s" font-family="%s" font-size="12">%s</text>'
-            '</g>'
-            % (cx - aw / 2, BRIGHT, FONT, n,
-               cx - aw / 2 + (len(n) + 1) * cell, MUTED, FONT, word)
+            '<text x="%d" y="152" text-anchor="middle" fill="%s" font-family="%s" '
+            'font-size="12"><tspan font-weight="700" fill="%s">%d</tspan>'
+            '&#160;Attempting</text></g>'   # nbsp: SVG would collapse a plain space
+            % (cx, MUTED, SANS, BRIGHT, att)
         )
 
-    bx, bwid = 286, 192
+    body.append('<line x1="278" y1="32" x2="278" y2="163" stroke="%s" '
+                'stroke-width="1.2"/>' % MINT)
+
+    # 52px pitch between entries, matching the airiness of the neighbouring
+    # card rather than stacking three pairs of lines tightly.
     for i, (name, colour, got, tot) in enumerate(diffs):
-        by = 17 + i * 58
         body.append(
             '<g class="rv" style="animation-duration:.5s;animation-delay:%.2fs">'
-            '<rect x="%d" y="%d" width="%d" height="50" rx="8" fill="%s" stroke="%s"/>'
-            '<text x="%d" y="%d" text-anchor="middle" fill="%s" font-family="%s" '
-            'font-size="13" font-weight="700">%s</text>'
-            '<text x="%d" y="%d" text-anchor="middle" fill="%s" font-family="%s" '
-            'font-size="14">%d/%d</text></g>'
-            % (0.2 + i * 0.09, bx, by, bwid, PANEL, LINE,
-               bx + bwid // 2, by + 21, colour, FONT, name,
-               bx + bwid // 2, by + 40, BRIGHT, FONT, got, tot)
+            '<text x="386" y="%d" text-anchor="middle" fill="%s" font-family="%s" '
+            'font-size="20" font-weight="700">%d/%d</text>'
+            '<text x="386" y="%d" text-anchor="middle" fill="%s" font-family="%s" '
+            'font-size="13">%s</text></g>'
+            % (0.2 + i * 0.09,
+               42 + i * 52, BRIGHT, SANS, got, tot,
+               61 + i * 52, colour, SANS, name)
         )
-
-    body.append('<text x="20" y="26" fill="%s" font-family="%s" font-size="9" '
-                'letter-spacing="1.5">LEETCODE</text>' % (MUTED, FONT))
 
     label = "LeetCode — %d of %d solved (%d attempting): %s" % (
         solved, whole, att,
