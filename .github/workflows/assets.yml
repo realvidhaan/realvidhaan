@@ -1,0 +1,40 @@
+name: refresh generated assets
+
+on:
+  schedule:
+    - cron: "30 2 * * *"   # daily, just after the snake job
+  workflow_dispatch: {}
+  push:
+    branches:
+      - master
+    paths:
+      - assets/build.py
+      - .github/workflows/assets.yml
+
+permissions:
+  contents: write
+
+concurrency:
+  group: assets-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: rebuild SVGs with fresh LeetCode stats
+        run: python3 assets/build.py
+
+      # Output is deterministic, so this only commits when the numbers moved.
+      - name: commit if anything changed
+        run: |
+          if [ -z "$(git status --porcelain assets)" ]; then
+            echo "assets unchanged"; exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add assets
+          git commit -m "Refresh generated assets"
+          git push
