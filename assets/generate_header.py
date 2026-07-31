@@ -55,23 +55,20 @@ def rain_column(x, idx):
     )
 
 
-def typed_chars(start_x, y):
-    """Each character pops in via a CSS opacity keyframe, staggered by animation-delay.
-    Chrome only runs compositor-safe properties (transform, opacity) on an SVG that's
-    embedded via <img> — as GitHub does — so this avoids SMIL and clip-path/width
-    animation, both of which silently never paint in that context."""
-    step = TYPE_DURATION / len(TYPED)
-    out = []
-    for i, ch in enumerate(TYPED):
-        x = start_x + i * CELL_W
-        delay = round(i * step, 3)
-        ch_display = "&#160;" if ch == " " else ch
-        out.append(
-            f'<text x="{x}" y="{y}" fill="{BRIGHT}" font-family="{FONT}" '
-            f'font-size="{FONT_SIZE}" font-weight="700" opacity="0" '
-            f'style="animation: pop-in 0.01s steps(1) {delay}s forwards">{ch_display}</text>'
-        )
-    return "".join(out)
+def typed_line(start_x, y, width):
+    """Reveal the greeting by growing a textPath's length via SMIL — the exact
+    technique readme-typing-svg uses (millions of live GitHub profiles), verified
+    by fetching its actual SVG source. Not CSS: only SMIL is proven to animate
+    on an SVG embedded via <img>, which is how GitHub renders README images."""
+    x2 = start_x + width
+    return (
+        f'<path id="type-path" fill="none" stroke="none">'
+        f'<animate attributeName="d" begin="0s" dur="{TYPE_DURATION}s" fill="freeze" '
+        f'values="M {start_x},{y} H {start_x} ; M {start_x},{y} H {x2}" keyTimes="0;1" />'
+        f'</path>'
+        f'<text fill="{BRIGHT}" font-family="{FONT}" font-size="{FONT_SIZE}" font-weight="700">'
+        f'<textPath xlink:href="#type-path">{TYPED}</textPath></text>'
+    )
 
 
 def build():
@@ -87,12 +84,10 @@ def build():
     cursor_h = FONT_SIZE * 0.85
     cursor_y = text_y - FONT_SIZE * 0.72
 
-    svg = f'''<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 {WIDTH} {HEIGHT}" role="img" aria-label="Terminal greeting from Vidhaan">
+    svg = f'''<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 {WIDTH} {HEIGHT}" role="img" aria-label="Terminal greeting from Vidhaan">
   <style>
     @keyframes rain-fall {{ from {{ transform: translateY(0); }} to {{ transform: translateY({UNIT_H}px); }} }}
     .rain-col {{ animation-name: rain-fall; animation-timing-function: linear; animation-iteration-count: infinite; }}
-    @keyframes pop-in {{ to {{ opacity: 1; }} }}
-    @keyframes cursor-blink {{ 0%, 49% {{ opacity: 1; }} 50%, 100% {{ opacity: 0; }} }}
   </style>
 
   <defs>
@@ -120,9 +115,10 @@ def build():
     <text x="{WIDTH / 2}" y="21" text-anchor="middle" fill="{MUTED}" font-family="{FONT}" font-size="12" letter-spacing="1">guest@vidhaan:~</text>
 
     <text x="{start_x}" y="{text_y}" fill="{MID}" font-family="{FONT}" font-size="{FONT_SIZE}" font-weight="700">{PROMPT}</text>
-    {typed_chars(start_x + prompt_w, text_y)}
-    <rect x="{cursor_x}" y="{cursor_y}" width="{cursor_w}" height="{cursor_h}" fill="{BRIGHT}" opacity="0"
-      style="animation: cursor-blink 1s steps(1) infinite; animation-delay: {TYPE_DURATION}s" />
+    {typed_line(start_x + prompt_w, text_y, typed_w)}
+    <rect x="{cursor_x}" y="{cursor_y}" width="{cursor_w}" height="{cursor_h}" fill="{BRIGHT}" opacity="0">
+      <animate attributeName="opacity" values="1;0" dur="1s" begin="{TYPE_DURATION}s" repeatCount="indefinite" />
+    </rect>
 
     <text x="{WIDTH / 2}" y="205" text-anchor="middle" fill="{MUTED}" font-family="{FONT}" font-size="15">{CAPTION}</text>
   </g>
