@@ -1,102 +1,67 @@
 <div align="center">
-  <img src="https://coolreadme.xyz/api/hacker?user=realvidhaan&status=SHIPPING+BASISRIDE&accent=%2300FF88" alt="realvidhaan hacker card" />
+  <img src="assets/header.svg" width="100%" alt="Terminal banner: guest@vidhaan:~ prompt typing Hello, I'm Vidhaan" />
 </div>
 
-## About
+<br/>
 
-I'd rather ship something people use than finish another tutorial. Most of what's here started
-as a real problem I ran into, then turned into a working app.
+```bash
+guest@vidhaan:~$ cat about.txt
 
-Right now I split my time between building on my own and competing in ACSL, a national
-programming competition. I scored 39/40 at Finals, and this year's Summer League I went 3/3.
+[current]    building Velo — an open-source, push-to-talk voice dictation app, in the
+             same spirit as WisprFlow
+[seeking]    collaborators to get BasisRide into more carpool groups at my school
+[learning]   how AI actually works under the hood, and how to wire it into my own apps
+[compete]    ACSL — scored 39/40 at Nationals, went 3/3 in this year's Summer League
+[fact]       earned my PADI Scuba Diving License at age 10
 
-I like the business side as much as the code. Figuring out what's worth building, talking to
-whoever's actually going to use it, and keeping the first version small.
+guest@vidhaan:~$ _
+```
 
-## Projects
-
-<table>
-<tr><td width="50%" valign="top">
-
-**BasisRide**
-
-A carpool app for families at my school. Parents get matched with others nearby, the app keeps
-track of whose turn it is to drive, and everyone can follow the trip live instead of guessing
-when the car is five minutes out. It grew out of my own family's group chat turning into a mess
-every week.
-
-live: [basisrides.vercel.app](https://basisrides.vercel.app)
-repo: [realvidhaan/basisrides](https://github.com/realvidhaan/basisrides)
-
-![Expo](https://img.shields.io/badge/Expo-000020?style=for-the-badge&logo=expo&logoColor=00FF88)
-![React Native](https://img.shields.io/badge/React_Native-000020?style=for-the-badge&logo=react&logoColor=00FF88)
-![Vercel](https://img.shields.io/badge/Vercel-000020?style=for-the-badge&logo=vercel&logoColor=00FF88)
-
-</td><td width="50%" valign="top">
-
-**Velo**
-
-Open-source, hold-a-hotkey voice dictation for macOS, in the same spirit as Wispr Flow.
-Speech-to-text runs on-device, then a small LLM cleans up filler words and punctuation before
-the text lands wherever your cursor is. You can point the cleanup step at Ollama instead of the
-cloud if you want everything staying local.
-
-repo: [realvidhaan/velo](https://github.com/realvidhaan/velo)
-
-![Swift](https://img.shields.io/badge/Swift-000020?style=for-the-badge&logo=swift&logoColor=00FF88)
-![Groq](https://img.shields.io/badge/Groq-000020?style=for-the-badge&logo=groq&logoColor=00FF88)
-![Ollama](https://img.shields.io/badge/Ollama-000020?style=for-the-badge&logo=ollama&logoColor=00FF88)
-
-</td></tr>
-</table>
-
-## LeetCode
+## Connect
 
 <div align="center">
-  <img src="https://github-readme-leetcode-card.romitsagu.com/vidhaan_j?theme=dark" alt="LeetCode stats" />
+
+[![Portfolio](https://img.shields.io/badge/vidhaan.info-0D1117?style=for-the-badge&logo=safari&logoColor=39FF88)](https://vidhaan.info)
+[![Email](https://img.shields.io/badge/realvidhaan%40gmail.com-0D1117?style=for-the-badge&logo=gmail&logoColor=39FF88)](mailto:realvidhaan@gmail.com)
+
 </div>
 
 ## Stack
 
-![Next.js](https://img.shields.io/badge/Next.js-000020?style=for-the-badge&logo=nextdotjs&logoColor=00FF88)
-![React](https://img.shields.io/badge/React-000020?style=for-the-badge&logo=react&logoColor=00FF88)
-![TypeScript](https://img.shields.io/badge/TypeScript-000020?style=for-the-badge&logo=typescript&logoColor=00FF88)
-![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-000020?style=for-the-badge&logo=tailwindcss&logoColor=00FF88)
-![Python](https://img.shields.io/badge/Python-000020?style=for-the-badge&logo=python&logoColor=00FF88)
-![FastAPI](https://img.shields.io/badge/FastAPI-000020?style=for-the-badge&logo=fastapi&logoColor=00FF88)
-![Docker](https://img.shields.io/badge/Docker-000020?style=for-the-badge&logo=docker&logoColor=00FF88)
-![GitHub Actions](https://img.shields.io/badge/GitHub_Actions-000020?style=for-the-badge&logo=githubactions&logoColor=00FF88)
+<div align="center">
+
+![HTML5](https://img.shields.io/badge/HTML5-0D1117?style=for-the-badge&logo=html5&logoColor=39FF88) ![JavaScript](https://img.shields.io/badge/JavaScript-0D1117?style=for-the-badge&logo=javascript&logoColor=39FF88) ![Markdown](https://img.shields.io/badge/Markdown-0D1117?style=for-the-badge&logo=markdown&logoColor=39FF88) ![Python](https://img.shields.io/badge/Python-0D1117?style=for-the-badge&logo=python&logoColor=39FF88) ![TypeScript](https://img.shields.io/badge/TypeScript-0D1117?style=for-the-badge&logo=typescript&logoColor=39FF88) ![Swift](https://img.shields.io/badge/Swift-0D1117?style=for-the-badge&logo=swift&logoColor=39FF88) ![Vercel](https://img.shields.io/badge/Vercel-0D1117?style=for-the-badge&logo=vercel&logoColor=39FF88) ![Render](https://img.shields.io/badge/Render-0D1117?style=for-the-badge&logo=render&logoColor=39FF88) ![Netlify](https://img.shields.io/badge/Netlify-0D1117?style=for-the-badge&logo=netlify&logoColor=39FF88) ![Google Cloud](https://img.shields.io/badge/Google_Cloud-0D1117?style=for-the-badge&logo=googlecloud&logoColor=39FF88) ![Astro](https://img.shields.io/badge/Astro-0D1117?style=for-the-badge&logo=astro&logoColor=39FF88) ![Expo](https://img.shields.io/badge/Expo-0D1117?style=for-the-badge&logo=expo&logoColor=39FF88) ![FastAPI](https://img.shields.io/badge/FastAPI-0D1117?style=for-the-badge&logo=fastapi&logoColor=39FF88) ![NPM](https://img.shields.io/badge/NPM-0D1117?style=for-the-badge&logo=npm&logoColor=39FF88) ![Next JS](https://img.shields.io/badge/Next_JS-0D1117?style=for-the-badge&logo=nextdotjs&logoColor=39FF88) ![NodeJS](https://img.shields.io/badge/NodeJS-0D1117?style=for-the-badge&logo=nodedotjs&logoColor=39FF88) ![React](https://img.shields.io/badge/React-0D1117?style=for-the-badge&logo=react&logoColor=39FF88) ![React Native](https://img.shields.io/badge/React_Native-0D1117?style=for-the-badge&logo=react&logoColor=39FF88) ![TailwindCSS](https://img.shields.io/badge/TailwindCSS-0D1117?style=for-the-badge&logo=tailwindcss&logoColor=39FF88) ![Three js](https://img.shields.io/badge/Three_js-0D1117?style=for-the-badge&logo=threedotjs&logoColor=39FF88) ![Vite](https://img.shields.io/badge/Vite-0D1117?style=for-the-badge&logo=vite&logoColor=39FF88) ![Web3.js](https://img.shields.io/badge/Web3.js-0D1117?style=for-the-badge&logo=web3dotjs&logoColor=39FF88) ![Vue.js](https://img.shields.io/badge/Vue.js-0D1117?style=for-the-badge&logo=vuedotjs&logoColor=39FF88) ![Supabase](https://img.shields.io/badge/Supabase-0D1117?style=for-the-badge&logo=supabase&logoColor=39FF88) ![Canva](https://img.shields.io/badge/Canva-0D1117?style=for-the-badge&logo=canva&logoColor=39FF88) ![Dribbble](https://img.shields.io/badge/Dribbble-0D1117?style=for-the-badge&logo=dribbble&logoColor=39FF88) ![Figma](https://img.shields.io/badge/Figma-0D1117?style=for-the-badge&logo=figma&logoColor=39FF88) ![Krita](https://img.shields.io/badge/Krita-0D1117?style=for-the-badge&logo=krita&logoColor=39FF88) ![Pandas](https://img.shields.io/badge/Pandas-0D1117?style=for-the-badge&logo=pandas&logoColor=39FF88) ![GitHub Actions](https://img.shields.io/badge/GitHub_Actions-0D1117?style=for-the-badge&logo=githubactions&logoColor=39FF88) ![GitHub](https://img.shields.io/badge/GitHub-0D1117?style=for-the-badge&logo=github&logoColor=39FF88) ![Playwright](https://img.shields.io/badge/Playwright-0D1117?style=for-the-badge&logo=playwright&logoColor=39FF88) ![Sentry](https://img.shields.io/badge/Sentry-0D1117?style=for-the-badge&logo=sentry&logoColor=39FF88) ![Docker](https://img.shields.io/badge/Docker-0D1117?style=for-the-badge&logo=docker&logoColor=39FF88)
+
+</div>
 
 ## GitHub
 
 <div align="center">
-<img height="165" src="https://github-readme-stats.vercel.app/api?username=realvidhaan&show_icons=true&theme=shadow_green&hide_border=true" alt="GitHub stats" />
-<img height="165" src="https://github-readme-stats.vercel.app/api/top-langs/?username=realvidhaan&layout=compact&theme=shadow_green&hide_border=true" alt="Top languages" />
+
+<img height="165" src="https://github-readme-stats.vercel.app/api/top-langs/?username=realvidhaan&layout=compact&hide_border=false&bg_color=05070A&title_color=39FF88&text_color=D7E4DD&border_color=0B3B24" alt="Top languages" />
+
+<img src="https://streak-stats.demolab.com?user=realvidhaan&hide_border=false&background=05070A&border=0B3B24&stroke=39FF88&ring=39FF88&fire=39FF88&currStreakNum=F2FFF8&sideNums=F2FFF8&currStreakLabel=39FF88&sideLabels=5B6B63&dates=5B6B63" alt="GitHub streak" />
+
 </div>
 
 <div align="center">
-<img src="https://streak-stats.demolab.com?user=realvidhaan&theme=shadow_green&hide_border=true" alt="GitHub streak" />
-</div>
 
-<div align="center">
-<img src="https://github-readme-activity-graph.vercel.app/graph?username=realvidhaan&theme=github&hide_border=true&area=true" alt="GitHub activity graph" />
-</div>
-
-<div align="center">
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/realvidhaan/realvidhaan/output/github-snake-dark.svg" />
   <source media="(prefers-color-scheme: light)" srcset="https://raw.githubusercontent.com/realvidhaan/realvidhaan/output/github-snake.svg" />
-  <img alt="contribution snake" src="https://raw.githubusercontent.com/realvidhaan/realvidhaan/output/github-snake.svg" />
+  <img alt="a snake eating through the squares of my contribution graph" src="https://raw.githubusercontent.com/realvidhaan/realvidhaan/output/github-snake.svg" />
 </picture>
+
 </div>
 
 ---
 
 <div align="center">
 
-[![Portfolio](https://img.shields.io/badge/vidhaan.info-000020?style=for-the-badge&logo=safari&logoColor=00FF88)](https://vidhaan.info)
-[![Email](https://img.shields.io/badge/realvidhaan%40gmail.com-000020?style=for-the-badge&logo=gmail&logoColor=00FF88)](mailto:realvidhaan@gmail.com)
-
-![Profile views](https://komarev.com/ghpvc/?username=realvidhaan&color=00FF88&style=for-the-badge&label=PROFILE+VIEWS)
+![Profile views](https://komarev.com/ghpvc/?username=realvidhaan&color=39FF88&style=for-the-badge&label=PROFILE+VIEWS)
 
 </div>
+
+```bash
+guest@vidhaan:~$ exit
+```
