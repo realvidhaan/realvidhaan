@@ -73,7 +73,7 @@ Point the cleanup step at Ollama and nothing ever leaves your machine.
 
 <p align="center">
 <img height="196" src="assets/leetcode.svg" alt="LeetCode — 820 solved of 4,005: 576 easy, 232 medium, 12 hard" />
-<img height="196" src="https://streak-stats.demolab.com?user=realvidhaan&hide_border=false&background=05070A&border=0B3B24&stroke=39FF88&ring=39FF88&fire=39FF88&currStreakNum=F2FFF8&sideNums=F2FFF8&currStreakLabel=39FF88&sideLabels=5B6B63&dates=5B6B63" alt="GitHub contribution streak" />
+<img height="196" src="assets/streak.svg" alt="GitHub contribution streak — 24 current, 24 longest, 3,972 total contributions" />
 </p>
 
 <picture>

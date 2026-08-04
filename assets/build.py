@@ -1,12 +1,13 @@
 #!/usr/bin/env python3
 """Regenerate every SVG in assets/. Pure stdlib, no deps.
 
-    python3 assets/build.py            # rebuild, fetching live LeetCode stats
-    python3 assets/build.py --offline  # rebuild from assets/leetcode.json
+    python3 assets/build.py            # rebuild, fetching live stats
+    python3 assets/build.py --offline  # rebuild from assets/*.json caches
 
 Output is deterministic (fixed RNG seeds), so re-running with unchanged data
 produces byte-identical files and the daily workflow makes no noise commits.
 """
+import datetime
 import json
 import math
 import os
@@ -376,23 +377,31 @@ QUERY = ("query u($u:String!){allQuestionsCount{difficulty count}"
          "numFailedQuestions{count difficulty}}}")
 
 
-def fetch_leetcode(user="vidhaan_j"):
-    payload = json.dumps({"query": QUERY, "variables": {"u": user}})
-    headers = {"Content-Type": "application/json", "User-Agent": "Mozilla/5.0"}
+def _post_json(url, payload, headers, timeout=20):
+    """POST JSON and parse the JSON response, falling back to curl.
+
+    Python builds without a CA bundle (common on macOS python.org installs)
+    can't do TLS; curl carries the system trust store.
+    """
+    body = json.dumps(payload)
     try:
-        req = urllib.request.Request(
-            "https://leetcode.com/graphql", data=payload.encode(), headers=headers)
-        with urllib.request.urlopen(req, timeout=20) as r:
-            raw = json.load(r)
+        req = urllib.request.Request(url, data=body.encode(), headers=headers)
+        with urllib.request.urlopen(req, timeout=timeout) as r:
+            return json.load(r)
     except Exception:
-        # Python builds without a CA bundle (common on macOS python.org installs)
-        # can't do TLS; curl carries the system trust store.
-        out = subprocess.run(
-            ["curl", "-sS", "-X", "POST", "https://leetcode.com/graphql",
-             "-H", "Content-Type: application/json",
-             "-H", "User-Agent: Mozilla/5.0", "-d", payload],
-            capture_output=True, text=True, timeout=30, check=True)
-        raw = json.loads(out.stdout)
+        cmd = ["curl", "-sS", "-X", "POST", url]
+        for k, v in headers.items():
+            cmd += ["-H", "%s: %s" % (k, v)]
+        cmd += ["-d", body]
+        out = subprocess.run(cmd, capture_output=True, text=True,
+                              timeout=timeout + 10, check=True)
+        return json.loads(out.stdout)
+
+
+def fetch_leetcode(user="vidhaan_j"):
+    headers = {"Content-Type": "application/json", "User-Agent": "Mozilla/5.0"}
+    raw = _post_json("https://leetcode.com/graphql",
+                      {"query": QUERY, "variables": {"u": user}}, headers)
 
     d = raw["data"]
     total = {x["difficulty"]: x["count"] for x in d["allQuestionsCount"]}
@@ -503,6 +512,179 @@ def build_leetcode(data):
     )
 
 
+# ----------------------------------------------------------------- streak ---
+# Built locally instead of embedding streak-stats.demolab.com: that's a public
+# shared instance proxying GitHub's own API, and it eats the same 60-req/hour
+# unauthenticated rate limit as every other profile using it — so it goes
+# down at random and renders an error card in place of the real one. Fetching
+# with our own token (5,000 req/hour) and drawing the card ourselves, the
+# same way leetcode.svg already is, removes that shared point of failure.
+# Card size and column layout match streak-stats.demolab.com's own output —
+# this card already declared itself "identical to the streak card beside it"
+# (see LC_W/LC_H above) back when it sat next to that service's version.
+GITHUB_USER = "realvidhaan"
+
+STREAK_QUERY = (
+    "query($l:String!,$from:DateTime!,$to:DateTime!){user(login:$l){"
+    "contributionsCollection(from:$from,to:$to){contributionCalendar{"
+    "weeks{contributionDays{date contributionCount}}}}}}"
+)
+
+
+def fetch_streak(user, token):
+    """Pull the full daily contribution history and reduce it to the three
+    numbers the card shows. contributionsCollection caps each query's span at
+    a year, so history is walked in yearly windows from account creation.
+    """
+    headers = {"Authorization": "bearer %s" % token,
+               "Content-Type": "application/json", "User-Agent": "Mozilla/5.0"}
+
+    created_raw = _post_json(
+        "https://api.github.com/graphql",
+        {"query": "query($l:String!){user(login:$l){createdAt}}",
+         "variables": {"l": user}}, headers)
+    if created_raw.get("errors"):
+        raise ValueError(created_raw["errors"])
+    created = datetime.date.fromisoformat(created_raw["data"]["user"]["createdAt"][:10])
+    today = datetime.datetime.now(datetime.timezone.utc).date()
+
+    days = {}
+    cursor = created
+    while cursor <= today:
+        window_end = min(cursor + datetime.timedelta(days=365),
+                          today + datetime.timedelta(days=1))
+        variables = {"l": user, "from": cursor.strftime("%Y-%m-%dT00:00:00Z"),
+                     "to": window_end.strftime("%Y-%m-%dT00:00:00Z")}
+        raw = _post_json("https://api.github.com/graphql",
+                          {"query": STREAK_QUERY, "variables": variables}, headers)
+        if raw.get("errors"):
+            raise ValueError(raw["errors"])
+        weeks = raw["data"]["user"]["contributionsCollection"]["contributionCalendar"]["weeks"]
+        for w in weeks:
+            for d in w["contributionDays"]:
+                date = datetime.date.fromisoformat(d["date"])
+                if created <= date <= today:
+                    days[date] = d["contributionCount"]
+        cursor = window_end
+
+    return _streak_stats(user, created, today, days)
+
+
+def _streak_stats(user, created, today, days):
+    """A day with zero contributions only breaks the current streak if it
+    isn't today — today's count can still rise before the day is over.
+    """
+    ordered = sorted(days)
+    total = sum(days.values())
+
+    longest, run, run_start = 0, 0, None
+    longest_start = longest_end = today
+    for d in ordered:
+        if days[d] > 0:
+            if run == 0:
+                run_start = d
+            run += 1
+            if run > longest:
+                longest, longest_start, longest_end = run, run_start, d
+        else:
+            run = 0
+
+    current, i = 0, len(ordered) - 1
+    if i >= 0 and days[ordered[i]] == 0:
+        i -= 1
+    current_end = ordered[-1] if ordered else today
+    while i >= 0 and days[ordered[i]] > 0:
+        current += 1
+        i -= 1
+    current_start = ordered[i + 1] if current else current_end
+
+    return {
+        "user": user, "total": total, "total_start": created.isoformat(),
+        "current": current, "current_start": current_start.isoformat(),
+        "current_end": current_end.isoformat(),
+        "longest": longest, "longest_start": longest_start.isoformat(),
+        "longest_end": longest_end.isoformat(),
+    }
+
+
+def _fmt(iso, fmt):
+    return datetime.date.fromisoformat(iso).strftime(fmt)
+
+
+# The flame glyph streak-stats.demolab.com draws next to the current-streak
+# ring; kept identical so the card reads as a continuation of the same widget
+# rather than a redesign.
+FIRE_PATH = (
+    "M 1.5 0.67 C 1.5 0.67 2.24 3.32 2.24 5.47 C 2.24 7.53 0.89 9.2 -1.17 9.2 "
+    "C -3.23 9.2 -4.79 7.53 -4.79 5.47 L -4.76 5.11 C -6.78 7.51 -8 10.62 -8 13.99 "
+    "C -8 18.41 -4.42 22 0 22 C 4.42 22 8 18.41 8 13.99 C 8 8.6 5.41 3.79 1.5 0.67 Z "
+    "M -0.29 19 C -2.07 19 -3.51 17.6 -3.51 15.86 C -3.51 14.24 -2.46 13.1 -0.7 12.74 "
+    "C 1.07 12.38 2.9 11.53 3.92 10.16 C 4.31 11.45 4.51 12.81 4.51 14.2 "
+    "C 4.51 16.85 2.36 19 -0.29 19 Z"
+)
+
+
+def build_streak(data):
+    total, current, longest = data["total"], data["current"], data["longest"]
+    total_range = "%s - Present" % _fmt(data["total_start"], "%b %-d, %Y")
+    current_range = "%s - %s" % (_fmt(data["current_start"], "%b %-d"),
+                                  _fmt(data["current_end"], "%b %-d"))
+    longest_range = "%s - %s" % (_fmt(data["longest_start"], "%b %-d"),
+                                  _fmt(data["longest_end"], "%b %-d"))
+
+    body = [
+        '<line x1="165" y1="28" x2="165" y2="170" stroke="%s"/>' % LINE,
+        '<line x1="330" y1="28" x2="330" y2="170" stroke="%s"/>' % LINE,
+        # total contributions (left column)
+        '<g class="rv" style="animation-duration:.5s;animation-delay:.15s">'
+        '<text x="82.5" y="80" text-anchor="middle" fill="%s" font-family="%s" '
+        'font-size="28" font-weight="700">%s</text>'
+        '<text x="82.5" y="116" text-anchor="middle" fill="%s" font-family="%s" '
+        'font-size="14">Total Contributions</text>'
+        '<text x="82.5" y="146" text-anchor="middle" fill="%s" font-family="%s" '
+        'font-size="12">%s</text></g>'
+        % (BRIGHT, SANS, "{:,}".format(total), MUTED, SANS, MUTED, SANS, esc(total_range)),
+        # ring + fire behind the current-streak number (middle column)
+        '<mask id="streakring"><rect width="%d" height="%d" fill="#fff"/>'
+        '<ellipse cx="247.5" cy="32" rx="13" ry="18"/></mask>' % (LC_W, LC_H),
+        '<g mask="url(#streakring)"><circle cx="247.5" cy="71" r="40" fill="none" '
+        'stroke="%s" stroke-width="5" class="rv" style="animation-duration:.5s;'
+        'animation-delay:.05s"/></g>' % MINT,
+        '<g transform="translate(247.5,19.5)" class="rv" '
+        'style="animation-duration:.5s;animation-delay:.25s">'
+        '<path d="%s" fill="%s"/></g>' % (FIRE_PATH, MINT),
+        '<text x="247.5" y="80" text-anchor="middle" fill="%s" font-family="%s" '
+        'font-size="28" font-weight="700" class="rv" style="animation-duration:.6s;'
+        'animation-delay:.35s">%d</text>'
+        '<text x="247.5" y="140" text-anchor="middle" fill="%s" font-family="%s" '
+        'font-size="14" font-weight="700" class="rv" style="animation-duration:.5s;'
+        'animation-delay:.4s">Current Streak</text>'
+        '<text x="247.5" y="166" text-anchor="middle" fill="%s" font-family="%s" '
+        'font-size="12" class="rv" style="animation-duration:.5s;animation-delay:.4s">%s</text>'
+        % (BRIGHT, SANS, current, MINT, SANS, MUTED, SANS, esc(current_range)),
+        # longest streak (right column)
+        '<g class="rv" style="animation-duration:.5s;animation-delay:.5s">'
+        '<text x="412.5" y="80" text-anchor="middle" fill="%s" font-family="%s" '
+        'font-size="28" font-weight="700">%d</text>'
+        '<text x="412.5" y="116" text-anchor="middle" fill="%s" font-family="%s" '
+        'font-size="14">Longest Streak</text>'
+        '<text x="412.5" y="146" text-anchor="middle" fill="%s" font-family="%s" '
+        'font-size="12">%s</text></g>'
+        % (BRIGHT, SANS, longest, MUTED, SANS, MUTED, SANS, esc(longest_range)),
+    ]
+
+    label = "GitHub contribution streak — %d current, %d longest, %s total contributions" % (
+        current, longest, "{:,}".format(total))
+    return (
+        svg_open(LC_W, LC_H, label)
+        + "<style>%s</style>" % REVEAL_CSS
+        + '<rect x="1" y="1" width="%d" height="%d" rx="10" fill="%s" stroke="%s"/>'
+          % (LC_W - 2, LC_H - 2, VOID, LINE)
+        + "".join(body)
+        + "</svg>"
+    )
+
+
 # ------------------------------------------------------------------- main ---
 def write(name, content):
     path = os.path.join(HERE, name)
@@ -512,22 +694,39 @@ def write(name, content):
 
 
 def main():
-    cache = os.path.join(HERE, "leetcode.json")
-    if "--offline" in sys.argv:
-        data = json.load(open(cache))
+    offline = "--offline" in sys.argv
+
+    lc_cache = os.path.join(HERE, "leetcode.json")
+    if offline:
+        lc_data = json.load(open(lc_cache))
     else:
         try:
-            data = fetch_leetcode()
-            json.dump(data, open(cache, "w"), indent=2, sort_keys=True)
+            lc_data = fetch_leetcode()
+            json.dump(lc_data, open(lc_cache, "w"), indent=2, sort_keys=True)
         except Exception as e:                      # network down / API changed
             print("leetcode fetch failed (%s); using cache" % e, file=sys.stderr)
-            data = json.load(open(cache))
+            lc_data = json.load(open(lc_cache))
+
+    streak_cache = os.path.join(HERE, "streak.json")
+    token = os.environ.get("GITHUB_TOKEN")
+    if offline or not token:
+        if not offline:
+            print("no GITHUB_TOKEN set; using cached streak stats", file=sys.stderr)
+        streak_data = json.load(open(streak_cache))
+    else:
+        try:
+            streak_data = fetch_streak(GITHUB_USER, token)
+            json.dump(streak_data, open(streak_cache, "w"), indent=2, sort_keys=True)
+        except Exception as e:                      # network down / API changed
+            print("streak fetch failed (%s); using cache" % e, file=sys.stderr)
+            streak_data = json.load(open(streak_cache))
 
     write("hero.svg", build_hero())
     write("about.svg", build_about())
     write("rain-a.svg", build_divider(seed=3))
     write("rain-b.svg", build_divider(seed=17))
-    write("leetcode.svg", build_leetcode(data))
+    write("leetcode.svg", build_leetcode(lc_data))
+    write("streak.svg", build_streak(streak_data))
 
 
 if __name__ == "__main__":

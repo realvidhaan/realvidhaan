@@ -24,7 +24,9 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: rebuild SVGs with fresh LeetCode stats
+      - name: rebuild SVGs with fresh LeetCode and streak stats
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: python3 assets/build.py
 
       # Output is deterministic, so this only commits when the numbers moved.
