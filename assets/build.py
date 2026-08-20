@@ -251,7 +251,7 @@ SESSION = [
     ("cmd", "whoami"),
     ("gap", None),
     ("out", "I'm currently working on Velo, a push-to-talk open-source clone of WisprFlow."),
-    ("out", "I'm looking to collaborate on getting BasisRide into more carpool groups at my school."),
+    ("out", "I'm looking to collaborate on getting Ridr into more carpool groups at my school."),
     ("out", "I'm currently learning how AI works under the hood and how to integrate AI in my own apps."),
     ("out", "Ask me about training for ACSL; I scored 39/40 at Nationals and scored 3/3 in this year's Summer League."),
     ("out", "Fun fact: I earned my PADI Scuba Diving License when I was 10 years old!"),
