@@ -1,6 +1,6 @@
 <img src="assets/hero.svg" width="100%" alt="Terminal: guest@vidhaan:~ typing &quot;Hello, I'm Vidhaan&quot; — full stack developer" />
 
-<img src="assets/about.svg" width="100%" alt="Terminal: $ whoami — I'm currently working on Velo, a push-to-talk open-source clone of WisprFlow. I'm looking to collaborate on getting BasisRide into more carpool groups at my school. I'm currently learning how AI works under the hood and how to integrate AI in my own apps. Ask me about training for ACSL; I scored 39/40 at Nationals and scored 3/3 in this year's Summer League. Fun fact: I earned my PADI Scuba Diving License when I was 10 years old!" />
+<img src="assets/about.svg" width="100%" alt="Terminal: $ whoami — I'm currently working on Velo, a push-to-talk open-source clone of WisprFlow. I'm looking to collaborate on getting Ridr into more carpool groups at my school. I'm currently learning how AI works under the hood and how to integrate AI in my own apps. Ask me about training for ACSL; I scored 39/40 at Nationals and scored 3/3 in this year's Summer League. Fun fact: I earned my PADI Scuba Diving License when I was 10 years old!" />
 
 <img src="assets/rain-a.svg" width="100%" alt="" />
 
@@ -9,14 +9,14 @@
 <table>
 <tr><td width="50%" valign="top">
 
-### BasisRide
+### Ridr
 
 Carpool matching for families at my school. Parents get paired with others
 nearby, the app tracks whose turn it is to drive, and everyone can follow the
 trip live instead of guessing whether the car is five minutes out. It came out
 of my own family's group chat turning into a mess every week.
 
-[basisrides.vercel.app](https://basisrides.vercel.app) · [source](https://github.com/realvidhaan/basisrides)
+[basisrides.vercel.app](https://basisrides.vercel.app) · [source](https://github.com/realvidhaan/ridr)
 
 ![Expo](https://img.shields.io/badge/Expo-05070A?style=for-the-badge&logo=expo&logoColor=39FF88)
 ![React Native](https://img.shields.io/badge/React_Native-05070A?style=for-the-badge&logo=react&logoColor=39FF88)
