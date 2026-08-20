@@ -16,7 +16,7 @@ nearby, the app tracks whose turn it is to drive, and everyone can follow the
 trip live instead of guessing whether the car is five minutes out. It came out
 of my own family's group chat turning into a mess every week.
 
-[basisrides.vercel.app](https://basisrides.vercel.app) · [source](https://github.com/realvidhaan/ridr)
+[ridrapp.vercel.app](https://ridrapp.vercel.app) · [source](https://github.com/realvidhaan/ridr)
 
 ![Expo](https://img.shields.io/badge/Expo-05070A?style=for-the-badge&logo=expo&logoColor=39FF88)
 ![React Native](https://img.shields.io/badge/React_Native-05070A?style=for-the-badge&logo=react&logoColor=39FF88)
